@@ -1,6 +1,7 @@
 package ru.egorov;
 
 import org.json.simple.parser.ParseException;
+import ru.egorov.config.ApplicationConfig;
 import ru.egorov.exception.InvalidArgumentException;
 import ru.egorov.service.CommandService;
 import ru.egorov.service.SearchCommandService;
@@ -12,6 +13,7 @@ import java.util.Optional;
 public class CommandLineRunner {
     public static void run(String[] args) {
         try {
+            ApplicationConfig.loadProperties();
             if (args.length != 3) {
                 throw new InvalidArgumentException("Неправильное количество аргументов.");
             }
@@ -27,7 +29,7 @@ public class CommandLineRunner {
 
             commandService.execute(inputFilePath, outputFilePath);
         } catch (InvalidArgumentException | ParseException | IOException e) {
-            System.out.println(e.getMessage());
+            System.err.println(e.getMessage());
         }
 
     }
