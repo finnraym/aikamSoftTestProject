@@ -8,6 +8,7 @@ import ru.egorov.service.SearchCommandService;
 import ru.egorov.service.StatCommandService;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Optional;
 
 public class CommandLineRunner {
@@ -30,6 +31,8 @@ public class CommandLineRunner {
             commandService.execute(inputFilePath, outputFilePath);
         } catch (InvalidArgumentException | ParseException | IOException e) {
             System.err.println(e.getMessage());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
 
     }

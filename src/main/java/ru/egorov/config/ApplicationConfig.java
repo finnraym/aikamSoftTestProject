@@ -1,5 +1,6 @@
 package ru.egorov.config;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,9 +11,10 @@ import java.util.Properties;
 public class ApplicationConfig {
 
     private static Properties properties;
-    private static final String PROPERTIES_FILEPATH = "src/main/resources/application.properties";
+    private static final String PROPERTIES_FILEPATH = getPropertiesFilepath();
 
-    public static Properties getProperties() {
+    public static Properties getProperties() throws IOException {
+        if (properties == null) loadProperties();
         return properties;
     }
 
@@ -26,5 +28,9 @@ public class ApplicationConfig {
                 properties.load(stream);
             }
         }
+    }
+
+    private static String getPropertiesFilepath() {
+        return "src" + File.separator + "main" + File.separator + "resources" + File.separator + "application.properties";
     }
 }

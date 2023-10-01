@@ -3,12 +3,12 @@ package ru.egorov.model;
 public class Buyer {
     private long id;
     private String firstName;
-    private String secondName;
+    private String lastName;
 
-    public Buyer(long id, String firstName, String secondName) {
+    public Buyer(long id, String firstName, String lastName) {
         this.id = id;
         this.firstName = firstName;
-        this.secondName = secondName;
+        this.lastName = lastName;
     }
 
     public Buyer() {
@@ -30,11 +30,19 @@ public class Buyer {
         this.firstName = firstName;
     }
 
-    public String getSecondName() {
-        return secondName;
+    public String getLastName() {
+        return lastName;
     }
 
-    public void setSecondName(String secondName) {
-        this.secondName = secondName;
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                '}';
     }
 }
