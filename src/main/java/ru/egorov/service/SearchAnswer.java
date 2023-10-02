@@ -23,11 +23,11 @@ public class SearchAnswer extends Answer {
     public String toString() {
         StringBuilder builder = new StringBuilder();
 
-        builder.append("Type: ").append(this.getType());
-        builder.append("Results: [\n");
+        builder.append("type: ").append(this.getType()).append("\n");
+        builder.append("results: [\n");
 
         for(Map.Entry<Criteria, List<Buyer>> entry : results.entrySet()) {
-            builder.append("Criteria: ").append(entry.getKey()).append("\n");
+            builder.append("criteria: ").append(entry.getKey()).append("\n");
             List<Buyer> buyers = entry.getValue();
             builder.append("Buyers: \n");
             for (Buyer buyer : buyers) {
@@ -38,5 +38,9 @@ public class SearchAnswer extends Answer {
 
         builder.append("]");
         return builder.toString();
+    }
+
+    public Map<Criteria, List<Buyer>> getResults() {
+        return results;
     }
 }

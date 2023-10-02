@@ -42,6 +42,10 @@ public class Criteria {
         return true;
     }
 
+    public Map<String, String> getContainer() {
+        return container;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(container);
@@ -50,10 +54,9 @@ public class Criteria {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("Criteria:\n");
 
         container.forEach((key, value) -> {
-            builder.append("Key: ").append(key).append(" ").append("Value: ").append(value).append("\n");
+            builder.append(key).append(":").append(value).append(" ");
         });
 
         return builder.toString();

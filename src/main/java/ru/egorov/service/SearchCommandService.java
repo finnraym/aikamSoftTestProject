@@ -26,7 +26,7 @@ public class SearchCommandService implements CommandService {
 
     @Override
     public void execute(String inputFilePath, String outputFilePath) throws IOException, ParseException, SQLException {
-        parseJSON((JSONArray) new JSONReader().readFile(inputFilePath).get("criterias"));
+        parseJSON((JSONArray) JSONReader.readFile(inputFilePath).get("criterias"));
 
         for (Criteria criteria : criterias) {
             if (criteria.containsCriteria("lastName")) {
@@ -45,7 +45,7 @@ public class SearchCommandService implements CommandService {
             }
         }
 
-        System.out.println(answer);
+        JSONReader.writeToFile(outputFilePath, answer);
     }
 
     private List<Buyer> getBadBuyers(int limit) {
