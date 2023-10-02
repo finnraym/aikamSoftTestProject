@@ -56,8 +56,8 @@ public class SearchCommandService implements CommandService {
         return searchDAO.getBuyersByLastName(lastName);
     }
 
-    private List<Buyer> getBuyersByProductNameAndPurchaseTimes(String productName, int minTimes) {
-        return new ArrayList<>();
+    private List<Buyer> getBuyersByProductNameAndPurchaseTimes(String productName, int minTimes) throws SQLException, IOException {
+        return searchDAO.getBuyersByProductNameAndPurchaseTimes(productName, minTimes);
     }
 
     private List<Buyer> getBuyersByTotalPurchaseCostBetween(int minExpenses, int maxExpenses) {

@@ -18,18 +18,42 @@ public class SearchDAO {
         try (Connection connection = DBConfig.getConnection()){
             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_LASTNAME_QUERY);
             preparedStatement.setString(1, lastName);
-            ResultSet rs = preparedStatement.executeQuery();
-
-            while (rs.next()) {
-                Buyer buyer = new Buyer();
-                buyer.setFirstName(rs.getString("first_name"));
-                buyer.setLastName(rs.getString("second_name"));
-                buyers.add(buyer);
-            }
-            rs.close();
+            executeQuery(preparedStatement, buyers);
             preparedStatement.close();
         }
 
         return buyers;
+    }
+
+    public List<Buyer> getBuyersByProductNameAndPurchaseTimes(String productName, int minTimes) throws SQLException, IOException {
+        List<Buyer> buyers = new ArrayList<>();
+
+        String query = "SELECT b.first_name, b.second_name " +
+                "FROM buyer b " +
+                "INNER JOIN purchase p ON b.id = p.buyer_id " +
+                "INNER JOIN product pr ON p.product_id = pr.id " +
+                "WHERE pr.name = ? " +
+                "GROUP BY b.id " +
+                "HAVING count(b.id) >= ?";
+
+        try(Connection connection = DBConfig.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setString(1, productName);
+            preparedStatement.setInt(2, minTimes);
+            executeQuery(preparedStatement, buyers);
+            preparedStatement.close();
+        }
+        return buyers;
+    }
+
+    private void executeQuery(PreparedStatement ps, List<Buyer> buyers) throws SQLException {
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            Buyer buyer = new Buyer();
+            buyer.setFirstName(rs.getString("first_name"));
+            buyer.setLastName(rs.getString("second_name"));
+            buyers.add(buyer);
+        }
+        rs.close();
     }
 }
