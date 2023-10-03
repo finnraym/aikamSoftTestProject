@@ -46,6 +46,44 @@ public class SearchDAO {
         return buyers;
     }
 
+    public List<Buyer> getBuyersByTotalPurchaseCostBetween(int minExpenses, int maxExpenses) throws SQLException, IOException {
+        List<Buyer> buyers = new ArrayList<>();
+
+        String query = "SELECT b.first_name, b.second_name " +
+                "FROM buyer b " +
+                "INNER JOIN purchase p ON b.id = p.buyer_id " +
+                "INNER JOIN product pr ON p.product_id = pr.id " +
+                "GROUP BY b.id " +
+                "HAVING SUM(pr.price) BETWEEN ? AND ?;";
+
+        try(Connection connection = DBConfig.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setDouble(1, minExpenses);
+            preparedStatement.setDouble(2, maxExpenses);
+            executeQuery(preparedStatement, buyers);
+            preparedStatement.close();
+        }
+        return buyers;
+    }
+    public List<Buyer> getBadCustomers(int limit) throws SQLException, IOException {
+        List<Buyer> buyers = new ArrayList<>();
+
+        String query = "SELECT b.first_name, b.second_name " +
+                "FROM buyer b " +
+                "INNER JOIN purchase p ON b.id = p.buyer_id " +
+                "INNER JOIN product pr ON p.product_id = pr.id " +
+                "GROUP BY b.id " +
+                "ORDER BY COUNT(p.id) LIMIT ?";
+
+        try(Connection connection = DBConfig.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, limit);
+            executeQuery(preparedStatement, buyers);
+            preparedStatement.close();
+        }
+        return buyers;
+    }
+
     private void executeQuery(PreparedStatement ps, List<Buyer> buyers) throws SQLException {
         ResultSet rs = ps.executeQuery();
         while (rs.next()) {

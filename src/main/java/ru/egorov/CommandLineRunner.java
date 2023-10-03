@@ -3,9 +3,11 @@ package ru.egorov;
 import org.json.simple.parser.ParseException;
 import ru.egorov.config.ApplicationConfig;
 import ru.egorov.exception.InvalidArgumentException;
+import ru.egorov.exception.UnknownCriteriaException;
 import ru.egorov.service.CommandService;
 import ru.egorov.service.SearchCommandService;
 import ru.egorov.service.StatCommandService;
+import ru.egorov.util.JSONWriter;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -29,12 +31,13 @@ public class CommandLineRunner {
             checkFilePaths(inputFilePath, outputFilePath);
 
             commandService.execute(inputFilePath, outputFilePath);
-        } catch (InvalidArgumentException | ParseException | IOException e) {
+        } catch (InvalidArgumentException | IOException e) {
             System.err.println(e.getMessage());
+        } catch (UnknownCriteriaException | ParseException e) {
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     private static Optional<CommandService> getCommandService(String command) {

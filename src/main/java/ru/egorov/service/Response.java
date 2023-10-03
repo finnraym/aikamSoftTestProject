@@ -1,13 +1,10 @@
 package ru.egorov.service;
 
-public class Answer {
+public class Response {
     private String type;
 
-    public Answer(String type) {
+    public Response(String type) {
         this.type = type;
-    }
-
-    public Answer() {
     }
 
     public String getType() {

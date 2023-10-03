@@ -4,8 +4,11 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import ru.egorov.dao.SearchDAO;
+import ru.egorov.exception.UnknownCriteriaException;
 import ru.egorov.model.Buyer;
 import ru.egorov.util.JSONReader;
+import ru.egorov.util.JSONWriter;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -14,42 +17,42 @@ import java.util.List;
 public class SearchCommandService implements CommandService {
 
     private final List<Criteria> criterias;
-    private final SearchAnswer answer;
-
     private final SearchDAO searchDAO;
 
     public SearchCommandService() {
         this.criterias = new ArrayList<>();
-        this.answer = new SearchAnswer();
         this.searchDAO = new SearchDAO();
     }
 
     @Override
     public void execute(String inputFilePath, String outputFilePath) throws IOException, ParseException, SQLException {
-        parseJSON((JSONArray) JSONReader.readFile(inputFilePath).get("criterias"));
+        parseJSON((JSONArray) new JSONReader().readFile(inputFilePath).get("criterias"));
+        SearchResponse response = new SearchResponse();
 
         for (Criteria criteria : criterias) {
             if (criteria.containsCriteria("lastName")) {
-                answer.addResult(criteria, getBuyersByLastName(criteria.getValue("lastName")));
+                response.addResult(criteria, getBuyersByLastName(criteria.getValue("lastName")));
             } else if (criteria.containsCriteria("productName")) {
                 String productName = criteria.getValue("productName");
                 int minTimes = Integer.parseInt(criteria.getValue("minTimes"));
-                answer.addResult(criteria, getBuyersByProductNameAndPurchaseTimes(productName, minTimes));
+                response.addResult(criteria, getBuyersByProductNameAndPurchaseTimes(productName, minTimes));
             } else if (criteria.containsCriteria("minExpenses")) {
                 int minExpenses = Integer.parseInt(criteria.getValue("minExpenses"));
                 int maxExpenses = Integer.parseInt(criteria.getValue("maxExpenses"));
-                answer.addResult(criteria, getBuyersByTotalPurchaseCostBetween(minExpenses, maxExpenses));
+                response.addResult(criteria, getBuyersByTotalPurchaseCostBetween(minExpenses, maxExpenses));
             } else if (criteria.containsCriteria("badCustomers")) {
                 int badCustomers = Integer.parseInt(criteria.getValue("badCustomers"));
-                answer.addResult(criteria, getBadBuyers(badCustomers));
+                response.addResult(criteria, getBadBuyers(badCustomers));
+            } else {
+                throw new UnknownCriteriaException("Неизвестный критерий поиска: ");
             }
         }
 
-        JSONReader.writeToFile(outputFilePath, answer);
+        new JSONWriter().writeToFile(outputFilePath, response);
     }
 
-    private List<Buyer> getBadBuyers(int limit) {
-        return new ArrayList<>();
+    private List<Buyer> getBadBuyers(int limit) throws SQLException, IOException {
+        return searchDAO.getBadCustomers(limit);
     }
 
     private List<Buyer> getBuyersByLastName(String lastName) throws SQLException, IOException {
@@ -60,8 +63,8 @@ public class SearchCommandService implements CommandService {
         return searchDAO.getBuyersByProductNameAndPurchaseTimes(productName, minTimes);
     }
 
-    private List<Buyer> getBuyersByTotalPurchaseCostBetween(int minExpenses, int maxExpenses) {
-        return new ArrayList<>();
+    private List<Buyer> getBuyersByTotalPurchaseCostBetween(int minExpenses, int maxExpenses) throws SQLException, IOException {
+        return searchDAO.getBuyersByTotalPurchaseCostBetween(minExpenses, maxExpenses);
     }
     private void parseJSON(JSONArray array) {
         for (Object o : array) {

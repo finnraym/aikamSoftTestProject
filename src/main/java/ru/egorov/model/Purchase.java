@@ -3,50 +3,30 @@ package ru.egorov.model;
 import java.time.LocalDate;
 
 public class Purchase {
-    private long id;
-    private Buyer buyer;
-    private Product product;
-    private LocalDate purchaseDate;
+    private String productName;
+    private Double expenses;
 
     public Purchase() {
     }
 
-    public Purchase(long id, Buyer buyer, Product product, LocalDate purchaseDate) {
-        this.id = id;
-        this.buyer = buyer;
-        this.product = product;
-        this.purchaseDate = purchaseDate;
+    public Purchase(String productName, Double expenses) {
+        this.productName = productName;
+        this.expenses = expenses;
     }
 
-    public long getId() {
-        return id;
+    public String getProductName() {
+        return productName;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
-    public Buyer getBuyer() {
-        return buyer;
+    public Double getExpenses() {
+        return expenses;
     }
 
-    public void setBuyer(Buyer buyer) {
-        this.buyer = buyer;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-
-    public LocalDate getPurchaseDate() {
-        return purchaseDate;
-    }
-
-    public void setPurchaseDate(LocalDate purchaseDate) {
-        this.purchaseDate = purchaseDate;
+    public void setExpenses(Double expenses) {
+        this.expenses = expenses;
     }
 }
