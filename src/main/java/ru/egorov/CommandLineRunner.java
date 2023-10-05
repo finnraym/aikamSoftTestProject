@@ -1,16 +1,16 @@
 package ru.egorov;
 
-import org.json.simple.parser.ParseException;
+import com.google.gson.JsonObject;
 import ru.egorov.config.ApplicationConfig;
 import ru.egorov.exception.InvalidArgumentException;
-import ru.egorov.exception.UnknownCriteriaException;
+import ru.egorov.exception.ReadJSONFileException;
+import ru.egorov.exception.WriteJSONFileException;
 import ru.egorov.service.CommandService;
 import ru.egorov.service.SearchCommandService;
 import ru.egorov.service.StatCommandService;
+import ru.egorov.util.JSONReader;
 import ru.egorov.util.JSONWriter;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Optional;
 
 public class CommandLineRunner {
@@ -26,17 +26,22 @@ public class CommandLineRunner {
             String outputFilePath = args[2];
 
             CommandService commandService = getCommandService(command)
-                    .orElseThrow(() -> new InvalidArgumentException("Неизвестная команда."));
+                    .orElseThrow(() -> new InvalidArgumentException("Неизвестная команда: " + command));
 
             checkFilePaths(inputFilePath, outputFilePath);
 
-            commandService.execute(inputFilePath, outputFilePath);
-        } catch (InvalidArgumentException | IOException e) {
-            System.err.println(e.getMessage());
-        } catch (UnknownCriteriaException | ParseException e) {
+            JSONReader reader = new JSONReader();
+            JsonObject json = reader.read(inputFilePath);
+            ru.egorov.dto.Response response = commandService.execute(json);
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+            JSONWriter writer = new JSONWriter();
+            writer.write(outputFilePath, response);
+        } catch (WriteJSONFileException e) {
+            System.err.println("Ошибка записи в выходной JSON-файл. Подробнее: " + e.getMessage());
+        } catch (ReadJSONFileException e) {
+            System.err.println("Ошибка чтения входящего JSON-файла. Подробнее: " + e.getMessage());
+        } catch (RuntimeException e) {
+            System.err.println(e.getMessage());
         }
     }
 

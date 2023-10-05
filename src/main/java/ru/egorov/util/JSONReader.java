@@ -1,15 +1,24 @@
 package ru.egorov.util;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
-import java.io.FileReader;
-import java.io.IOException;
+import ru.egorov.exception.ReadJSONFileException;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class JSONReader {
-    public JSONObject readFile(String filePath) throws IOException, ParseException {
-        Object obj = new JSONParser().parse(new FileReader(filePath));
-        return (JSONObject) obj;
+
+    public JsonObject read(String filePath) throws ReadJSONFileException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(Paths.get(filePath)), StandardCharsets.UTF_8))) {
+            JsonElement jsonElement = JsonParser.parseReader(reader);
+            return jsonElement.getAsJsonObject();
+        } catch (IOException e) {
+            throw new ReadJSONFileException(e.getMessage());
+        }
     }
 }

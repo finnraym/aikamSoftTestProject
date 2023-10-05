@@ -13,19 +13,18 @@ public class ApplicationConfig {
     private static Properties properties;
     private static final String PROPERTIES_FILEPATH = getPropertiesFilepath();
 
-    public static Properties getProperties() throws IOException {
+    public static Properties getProperties() {
         if (properties == null) loadProperties();
         return properties;
     }
 
-    public static void loadProperties() throws IOException {
+    public static void loadProperties() {
         if (properties == null) {
             properties = new Properties();
             try (InputStream stream = Files.newInputStream(Paths.get(PROPERTIES_FILEPATH))) {
-                if (stream == null) {
-                    throw new FileNotFoundException();
-                }
                 properties.load(stream);
+            } catch (IOException e) {
+                System.err.println("Ошибка при чтении файла конфигурации: " + e.getMessage());
             }
         }
     }

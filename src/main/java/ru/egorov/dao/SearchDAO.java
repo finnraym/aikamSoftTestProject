@@ -1,9 +1,8 @@
 package ru.egorov.dao;
 
 import ru.egorov.config.DBConfig;
-import ru.egorov.model.Buyer;
+import ru.egorov.dto.CustomerSearchDTO;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,8 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 public class SearchDAO {
 
-    public List<Buyer> getBuyersByLastName(String lastName) throws SQLException, IOException{
-        List<Buyer> buyers = new ArrayList<>();
+    public List<CustomerSearchDTO> getBuyersByLastName(String lastName) throws SQLException {
+        List<CustomerSearchDTO> buyers = new ArrayList<>();
         final String FIND_BY_LASTNAME_QUERY = "SELECT first_name, second_name FROM buyer WHERE second_name = ?";
         try (Connection connection = DBConfig.getConnection()){
             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_LASTNAME_QUERY);
@@ -25,8 +24,8 @@ public class SearchDAO {
         return buyers;
     }
 
-    public List<Buyer> getBuyersByProductNameAndPurchaseTimes(String productName, int minTimes) throws SQLException, IOException {
-        List<Buyer> buyers = new ArrayList<>();
+    public List<CustomerSearchDTO> getBuyersByProductNameAndPurchaseTimes(String productName, int minTimes) throws SQLException {
+        List<CustomerSearchDTO> buyers = new ArrayList<>();
 
         String query = "SELECT b.first_name, b.second_name " +
                 "FROM buyer b " +
@@ -46,8 +45,8 @@ public class SearchDAO {
         return buyers;
     }
 
-    public List<Buyer> getBuyersByTotalPurchaseCostBetween(int minExpenses, int maxExpenses) throws SQLException, IOException {
-        List<Buyer> buyers = new ArrayList<>();
+    public List<CustomerSearchDTO> getBuyersByTotalPurchaseCostBetween(double minExpenses, double maxExpenses) throws SQLException {
+        List<CustomerSearchDTO> buyers = new ArrayList<>();
 
         String query = "SELECT b.first_name, b.second_name " +
                 "FROM buyer b " +
@@ -65,8 +64,8 @@ public class SearchDAO {
         }
         return buyers;
     }
-    public List<Buyer> getBadCustomers(int limit) throws SQLException, IOException {
-        List<Buyer> buyers = new ArrayList<>();
+    public List<CustomerSearchDTO> getBadCustomers(int limit) throws SQLException {
+        List<CustomerSearchDTO> buyers = new ArrayList<>();
 
         String query = "SELECT b.first_name, b.second_name " +
                 "FROM buyer b " +
@@ -84,13 +83,13 @@ public class SearchDAO {
         return buyers;
     }
 
-    private void executeQuery(PreparedStatement ps, List<Buyer> buyers) throws SQLException {
+    private void executeQuery(PreparedStatement ps, List<CustomerSearchDTO> buyers) throws SQLException {
         ResultSet rs = ps.executeQuery();
         while (rs.next()) {
-            Buyer buyer = new Buyer();
-            buyer.setFirstName(rs.getString("first_name"));
-            buyer.setLastName(rs.getString("second_name"));
-            buyers.add(buyer);
+            CustomerSearchDTO customer = new CustomerSearchDTO();
+            customer.setFirstName(rs.getString("first_name"));
+            customer.setLastName(rs.getString("second_name"));
+            buyers.add(customer);
         }
         rs.close();
     }

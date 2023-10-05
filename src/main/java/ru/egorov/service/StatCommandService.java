@@ -1,16 +1,15 @@
 package ru.egorov.service;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
+import com.google.gson.JsonObject;
 import ru.egorov.dao.StatDAO;
-import ru.egorov.model.Buyer;
-import ru.egorov.util.JSONReader;
-import ru.egorov.util.JSONWriter;
-
-import java.io.IOException;
+import ru.egorov.dto.CustomerStatDTO;
+import ru.egorov.exception.BadCriteriaException;
+import ru.egorov.dto.*;
+import ru.egorov.dto.ErrorResponse;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -23,21 +22,43 @@ public class StatCommandService implements CommandService {
     }
 
     @Override
-    public void execute(String inputFilePath, String outputFilePath) throws IOException, ParseException, SQLException {
-        JSONObject json = new JSONReader().readFile(inputFilePath);
-        LocalDate startDate = LocalDate.parse(json.get("startDate").toString(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        LocalDate endDate = LocalDate.parse(json.get("endDate").toString(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    public ru.egorov.dto.Response execute(JsonObject json) {
+        Response response;
+        try {
+            StatResponse statResponse = new StatResponse();
+            LocalDate startDate = LocalDate.parse(json.get("startDate").getAsString(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            LocalDate endDate = LocalDate.parse(json.get("endDate").getAsString(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        List<Buyer> stat = statDAO.getStatBetweenDate(startDate, endDate);
+            List<CustomerStatDTO> stat = getStatBetweenDate(startDate, endDate);
 
-        StatResponse response = new StatResponse();
-
-        response.setTotalDays((int) startDate.until(endDate, ChronoUnit.DAYS));
-        for (Buyer buyer : stat) {
-            response.addTotalExpenses(buyer.getTotalExpenses());
+            statResponse.setTotalDays((int) startDate.until(endDate, ChronoUnit.DAYS));
+            for (CustomerStatDTO customer : stat) {
+                statResponse.addCustomer(customer);
+                statResponse.addExpenses(customer.getTotalExpenses());
+            }
+            statResponse.setAvgExpenses(statResponse.getTotalExpenses() / stat.size());
+            response = statResponse;
+        } catch (SQLException e) {
+            response = new ErrorResponse();
+            ((ErrorResponse) response).setMessage("Ошибка при работе с базой данных. Подробнее: " + e.getMessage());
+        } catch (BadCriteriaException e) {
+            response = new ErrorResponse();
+            ((ErrorResponse) response).setMessage("Ошибка в критерии: " + e.getMessage());
+        } catch (DateTimeParseException e) {
+            response = new ErrorResponse();
+            ((ErrorResponse) response).setMessage("Неверный формат даты.");
+        } catch (RuntimeException e) {
+            response = new ErrorResponse();
+            ((ErrorResponse) response).setMessage(e.getMessage());
         }
-        response.setAvgExpenses(response.getTotalExpenses() / stat.size());
-        response.setBuyers(stat);
-        new JSONWriter().writeToFile(outputFilePath, response);
+        return response;
+    }
+
+    private List<CustomerStatDTO> getStatBetweenDate(LocalDate startDate, LocalDate endDate) throws SQLException, BadCriteriaException {
+        if (startDate.isAfter(endDate)) {
+            throw new BadCriteriaException("Начальная дата не может быть раньше конечной.");
+        }
+
+        return statDAO.getStatBetweenDate(startDate, endDate);
     }
 }
