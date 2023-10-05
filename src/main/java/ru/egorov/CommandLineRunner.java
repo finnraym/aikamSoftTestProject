@@ -2,6 +2,7 @@ package ru.egorov;
 
 import com.google.gson.JsonObject;
 import ru.egorov.config.ApplicationConfig;
+import ru.egorov.dto.Response;
 import ru.egorov.exception.InvalidArgumentException;
 import ru.egorov.exception.ReadJSONFileException;
 import ru.egorov.exception.WriteJSONFileException;
@@ -32,7 +33,7 @@ public class CommandLineRunner {
 
             JSONReader reader = new JSONReader();
             JsonObject json = reader.read(inputFilePath);
-            ru.egorov.dto.Response response = commandService.execute(json);
+            Response response = commandService.execute(json);
 
             JSONWriter writer = new JSONWriter();
             writer.write(outputFilePath, response);

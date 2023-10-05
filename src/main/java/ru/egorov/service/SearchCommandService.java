@@ -23,7 +23,7 @@ public class SearchCommandService implements CommandService {
     }
 
     @Override
-    public ru.egorov.dto.Response execute(JsonObject json) {
+    public Response execute(JsonObject json) {
         Response response;
         try {
             JsonElement jsonElement = json.get("criterias");
@@ -34,26 +34,7 @@ public class SearchCommandService implements CommandService {
 
             SearchResponse searchResponse = new SearchResponse();
 
-            for (Criteria criteria : criterias) {
-                CriteriaResultResponse resultResponse = new CriteriaResultResponse();
-                resultResponse.setCriteria(criteria);
-                if (criteria instanceof LastNameCriteria) {
-                    resultResponse.setResults(getBuyersByLastName(((LastNameCriteria) criteria).getLastName()));
-                } else if (criteria instanceof ProductNameAndCountPurchasesCriteria) {
-                    resultResponse.setResults(getBuyersByProductNameAndPurchaseTimes(
-                            ((ProductNameAndCountPurchasesCriteria) criteria).getProductName(),
-                            ((ProductNameAndCountPurchasesCriteria) criteria).getMinTimes()
-                    ));
-                } else if (criteria instanceof MinAndMaxExpensesCriteria) {
-                    resultResponse.setResults(getBuyersByTotalPurchaseCostBetween(
-                            ((MinAndMaxExpensesCriteria) criteria).getMinExpenses(),
-                            ((MinAndMaxExpensesCriteria) criteria).getMaxExpenses()
-                    ));
-                } else if (criteria instanceof BadCustomersCriteria) {
-                    resultResponse.setResults(getBadBuyers(((BadCustomersCriteria) criteria).getBadCustomers()));
-                }
-                searchResponse.addResult(resultResponse);
-            }
+            fillResponse(searchResponse, criterias);
 
             response = searchResponse;
         } catch (BadCriteriaException e) {
@@ -68,6 +49,29 @@ public class SearchCommandService implements CommandService {
         }
 
         return response;
+    }
+
+    private void fillResponse(SearchResponse response, List<Criteria> criterias) throws SQLException {
+        for (Criteria criteria : criterias) {
+            CriteriaResultResponse resultResponse = new CriteriaResultResponse();
+            resultResponse.setCriteria(criteria);
+            if (criteria instanceof LastNameCriteria) {
+                resultResponse.setResults(getBuyersByLastName(((LastNameCriteria) criteria).getLastName()));
+            } else if (criteria instanceof ProductNameAndCountPurchasesCriteria) {
+                resultResponse.setResults(getBuyersByProductNameAndPurchaseTimes(
+                        ((ProductNameAndCountPurchasesCriteria) criteria).getProductName(),
+                        ((ProductNameAndCountPurchasesCriteria) criteria).getMinTimes()
+                ));
+            } else if (criteria instanceof MinAndMaxExpensesCriteria) {
+                resultResponse.setResults(getBuyersByTotalPurchaseCostBetween(
+                        ((MinAndMaxExpensesCriteria) criteria).getMinExpenses(),
+                        ((MinAndMaxExpensesCriteria) criteria).getMaxExpenses()
+                ));
+            } else if (criteria instanceof BadCustomersCriteria) {
+                resultResponse.setResults(getBadBuyers(((BadCustomersCriteria) criteria).getBadCustomers()));
+            }
+            response.addResult(resultResponse);
+        }
     }
 
     private List<CustomerSearchDTO> getBadBuyers(int limit) throws SQLException {
@@ -97,47 +101,52 @@ public class SearchCommandService implements CommandService {
         return searchDAO.getBuyersByTotalPurchaseCostBetween(minExpenses, maxExpenses);
     }
 
-    private List<ru.egorov.dto.Criteria> getCriterias(JsonArray array) {
-        List<ru.egorov.dto.Criteria> criterias = new ArrayList<>();
+    private List<Criteria> getCriterias(JsonArray array) {
+        List<Criteria> criterias = new ArrayList<>();
         String[] criteriasNames = {"lastName", "productName", "minExpenses", "badCustomers"};
         for (JsonElement jsonElement : array) {
             JsonObject jsonObject = jsonElement.getAsJsonObject();
             int i = 0;
             JsonElement elem = jsonObject.get(criteriasNames[i]);
-            while (elem == null && i < criteriasNames.length) {
+            while (elem == null) {
                 i++;
+                if (i == criteriasNames.length) break;
                 elem = jsonObject.get(criteriasNames[i]);
             }
 
             if (elem == null) {
-                throw new UnknownCriteriaException("Неизвестный критерий поиска: " + jsonElement);
+                throw new UnknownCriteriaException("Неизвестный критерий поиска: " + jsonObject);
             }
 
             String criteriaName = criteriasNames[i];
 
-            if (criteriaName.equals("lastName")) {
-                LastNameCriteria criteria = new LastNameCriteria(elem.getAsString());
-                criterias.add(criteria);
-            } else if (criteriaName.equals("productName")) {
-                JsonElement minTimes = jsonObject.get("minTimes");
-                if (minTimes == null) throw new BadCriteriaException("Не хватает критерия количества покупок для конкретного продукта " + elem);
-                ProductNameAndCountPurchasesCriteria criteria = new ProductNameAndCountPurchasesCriteria();
-                criteria.setProductName(elem.getAsString());
-                criteria.setMinTimes(minTimes.getAsInt());
-                criterias.add(criteria);
-            } else if (criteriaName.equals("minExpenses")) {
-                JsonElement maxExpenses = jsonObject.get("maxExpenses");
-                if (maxExpenses == null) throw new BadCriteriaException("Не хватает критерия максимальной стоимости всех покупок");
-                MinAndMaxExpensesCriteria criteria = new MinAndMaxExpensesCriteria();
-                criteria.setMinExpenses(elem.getAsDouble());
-                criteria.setMaxExpenses(maxExpenses.getAsDouble());
-                criterias.add(criteria);
-            } else if (criteriaName.equals("badCustomers")) {
-                BadCustomersCriteria criteria = new BadCustomersCriteria(elem.getAsInt());
-                criterias.add(criteria);
-            }
+            fillCriterias(criteriaName, criterias, elem, jsonObject);
         }
 
         return criterias;
+    }
+
+    private void fillCriterias(String criteriaName, List<Criteria> criterias, JsonElement elem, JsonObject jsonObject) {
+        if (criteriaName.equals("lastName")) {
+            LastNameCriteria criteria = new LastNameCriteria(elem.getAsString());
+            criterias.add(criteria);
+        } else if (criteriaName.equals("productName")) {
+            JsonElement minTimes = jsonObject.get("minTimes");
+            if (minTimes == null) throw new BadCriteriaException("Не хватает критерия количества покупок для конкретного продукта " + elem.getAsString());
+            ProductNameAndCountPurchasesCriteria criteria = new ProductNameAndCountPurchasesCriteria();
+            criteria.setProductName(elem.getAsString());
+            criteria.setMinTimes(minTimes.getAsInt());
+            criterias.add(criteria);
+        } else if (criteriaName.equals("minExpenses")) {
+            JsonElement maxExpenses = jsonObject.get("maxExpenses");
+            if (maxExpenses == null) throw new BadCriteriaException("Не хватает критерия максимальной стоимости всех покупок");
+            MinAndMaxExpensesCriteria criteria = new MinAndMaxExpensesCriteria();
+            criteria.setMinExpenses(elem.getAsDouble());
+            criteria.setMaxExpenses(maxExpenses.getAsDouble());
+            criterias.add(criteria);
+        } else if (criteriaName.equals("badCustomers")) {
+            BadCustomersCriteria criteria = new BadCustomersCriteria(elem.getAsInt());
+            criterias.add(criteria);
+        }
     }
 }
