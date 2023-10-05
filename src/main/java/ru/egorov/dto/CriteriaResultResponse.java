@@ -32,7 +32,4 @@ public class CriteriaResultResponse {
         this.results = results;
     }
 
-    public void addResult(CustomerSearchDTO result) {
-        results.add(result);
-    }
 }

@@ -24,6 +24,6 @@ public class ErrorResponse implements Response {
 
     @Override
     public String getType() {
-        return null;
+        return type;
     }
 }
