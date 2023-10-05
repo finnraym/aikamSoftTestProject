@@ -4,7 +4,6 @@ import ru.egorov.config.DBConfig;
 import ru.egorov.dto.CustomerStatDTO;
 import ru.egorov.dto.Purchase;
 
-import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
