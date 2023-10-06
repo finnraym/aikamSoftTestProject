@@ -24,6 +24,7 @@ public class ApplicationConfig {
                 properties.load(stream);
             } catch (IOException e) {
                 System.err.println("Ошибка при чтении файла конфигурации: " + e.getMessage());
+                System.exit(1);
             }
         }
     }

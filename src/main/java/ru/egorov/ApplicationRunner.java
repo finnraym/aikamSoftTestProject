@@ -14,7 +14,7 @@ import ru.egorov.util.JSONWriter;
 
 import java.util.Optional;
 
-public class CommandLineRunner {
+public class ApplicationRunner {
     public static void run(String[] args) {
         try {
             ApplicationConfig.loadProperties();

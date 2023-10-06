@@ -45,7 +45,7 @@ public class SearchCommandService implements CommandService {
             ((ErrorResponse) response).setMessage("Ошибка при работе с базой данных. Подробнее: " + e.getMessage());
         } catch (RuntimeException e) {
             response = new ErrorResponse();
-            ((ErrorResponse) response).setMessage(e.getMessage());
+            ((ErrorResponse) response).setMessage("Ошибка в критерии. Подробнее: " + e.getMessage());
         }
 
         return response;
@@ -127,26 +127,32 @@ public class SearchCommandService implements CommandService {
     }
 
     private void fillCriterias(String criteriaName, List<Criteria> criterias, JsonElement elem, JsonObject jsonObject) {
-        if (criteriaName.equals("lastName")) {
-            LastNameCriteria criteria = new LastNameCriteria(elem.getAsString());
-            criterias.add(criteria);
-        } else if (criteriaName.equals("productName")) {
-            JsonElement minTimes = jsonObject.get("minTimes");
-            if (minTimes == null) throw new BadCriteriaException("Не хватает критерия количества покупок для конкретного продукта " + elem.getAsString());
-            ProductNameAndCountPurchasesCriteria criteria = new ProductNameAndCountPurchasesCriteria();
-            criteria.setProductName(elem.getAsString());
-            criteria.setMinTimes(minTimes.getAsInt());
-            criterias.add(criteria);
-        } else if (criteriaName.equals("minExpenses")) {
-            JsonElement maxExpenses = jsonObject.get("maxExpenses");
-            if (maxExpenses == null) throw new BadCriteriaException("Не хватает критерия максимальной стоимости всех покупок");
-            MinAndMaxExpensesCriteria criteria = new MinAndMaxExpensesCriteria();
-            criteria.setMinExpenses(elem.getAsDouble());
-            criteria.setMaxExpenses(maxExpenses.getAsDouble());
-            criterias.add(criteria);
-        } else if (criteriaName.equals("badCustomers")) {
-            BadCustomersCriteria criteria = new BadCustomersCriteria(elem.getAsInt());
-            criterias.add(criteria);
+        try {
+            if (criteriaName.equals("lastName")) {
+                LastNameCriteria criteria = new LastNameCriteria(elem.getAsString());
+                criterias.add(criteria);
+            } else if (criteriaName.equals("productName")) {
+                JsonElement minTimes = jsonObject.get("minTimes");
+                if (minTimes == null)
+                    throw new BadCriteriaException("Не хватает критерия количества покупок для конкретного продукта " + elem.getAsString());
+                ProductNameAndCountPurchasesCriteria criteria = new ProductNameAndCountPurchasesCriteria();
+                criteria.setProductName(elem.getAsString());
+                criteria.setMinTimes(minTimes.getAsInt());
+                criterias.add(criteria);
+            } else if (criteriaName.equals("minExpenses")) {
+                JsonElement maxExpenses = jsonObject.get("maxExpenses");
+                if (maxExpenses == null)
+                    throw new BadCriteriaException("Не хватает критерия максимальной стоимости всех покупок");
+                MinAndMaxExpensesCriteria criteria = new MinAndMaxExpensesCriteria();
+                criteria.setMinExpenses(elem.getAsDouble());
+                criteria.setMaxExpenses(maxExpenses.getAsDouble());
+                criterias.add(criteria);
+            } else if (criteriaName.equals("badCustomers")) {
+                BadCustomersCriteria criteria = new BadCustomersCriteria(elem.getAsInt());
+                criterias.add(criteria);
+            }
+        } catch (RuntimeException e) {
+            throw new BadCriteriaException("Некорректный критерий - " + elem);
         }
     }
 }
