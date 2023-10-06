@@ -7,8 +7,9 @@
 
 ## Запуск приложения.
 1. Восстановить бэкап базы данных по файлу bd.backup, находящегося в корне проекта, с помощью утилиты pg_restore. Подробнее - https://www.postgresql.org/docs/current/app-pgrestore.html
-2. Собрать проект при помощи Maven - mvn clean package
-3. Запустить jar-файл (запускать jar-with-dependencies) c аргументами командной строки. Пример - java -jar target/aikamTestProject-1.0-SNAPSHOT-jar-with-dependencies.jar search correctSearchInput.json output.json
+2. В файле src/main/resources/application.properties указать параметры для подключения к бд.
+3. Собрать проект при помощи Maven - mvn clean package
+4. Запустить jar-файл (запускать jar-with-dependencies) c аргументами командной строки. Пример - java -jar target/aikamTestProject-1.0-SNAPSHOT-jar-with-dependencies.jar search correctSearchInput.json output.json
 
 Входные файлы для тестирования находятся в корне проекта: correctSearchInput.json, correctStatInput.json, incorrectSearchInput.json, incorrectStatInput.json, output.json
 
